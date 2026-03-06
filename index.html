@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Work Tracker</title>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<h2>Work Tracker</h2>
+
+<div id="stats">
+WFO %: <span id="attendancePercent">0</span>
+</div>
+
+<button onclick="exportExcel()">Export Excel</button>
+
+<div id="calendar"></div>
+
+<div id="taskModal" class="modal">
+
+<h3 id="modalDate"></h3>
+
+<select id="attendance">
+<option value="wfh">WFH</option>
+<option value="wfo">WFO</option>
+<option value="leave">Leave</option>
+<option value="holiday">Holiday</option>
+</select>
+
+<h4>Tasks</h4>
+
+<div id="taskList"></div>
+
+<input id="taskName" placeholder="Task name">
+
+<input id="taskMinutes" placeholder="Minutes">
+
+<button onclick="addTask()">Add Task</button>
+
+<br><br>
+
+<button onclick="saveDay()">Save</button>
+<button onclick="closeModal()">Close</button>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

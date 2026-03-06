@@ -2,7 +2,7 @@ const repoOwner="gshreya10"
 const repoName="work-tracker"
 const filePath="data/worklog.json"
 
-const githubToken="PASTE_YOUR_TOKEN_HERE"
+const githubToken="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"
 
 let calendar
 let selectedDate=null

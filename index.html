@@ -21,7 +21,7 @@
 <div id="topBar">
 
 <div>
-WFO % : <span id="attendancePercent">0</span>
+WFO % : <span id="attendancePercent">0%</span>
 </div>
 
 <button onclick="exportExcel()">Export Excel</button>
@@ -34,7 +34,7 @@ WFO % : <span id="attendancePercent">0</span>
 
 <div id="sidePanel">
 
-<h3 id="panelDate">Select a day</h3>
+<h3 id="panelDate">Select a Day</h3>
 
 <label>Attendance</label>
 
@@ -52,6 +52,7 @@ WFO % : <span id="attendancePercent">0</span>
 <div id="taskList"></div>
 
 <input id="taskName" placeholder="Task name">
+
 <input id="taskMinutes" placeholder="Minutes">
 
 <button onclick="addTask()">Add Task</button>
@@ -60,8 +61,7 @@ WFO % : <span id="attendancePercent">0</span>
 
 <div id="timeSummary">
 
-Logged: 0h  
-Remaining: 7h
+Logged: 0h | Remaining: 7h
 
 </div>
 

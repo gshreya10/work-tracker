@@ -1,5 +1,12 @@
+const repoOwner="gshreya10"
+const repoName="work-tracker"
+const filePath="data/worklog.json"
+
+const githubToken="PASTE_YOUR_TOKEN_HERE"
+
 let calendar
 let selectedDate=null
+let fileSHA=null
 
 let data={}
 
@@ -22,7 +29,27 @@ openPanel()
 
 calendar.render()
 
+loadDatabase()
+
 })
+
+async function loadDatabase(){
+
+const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`
+
+const res=await fetch(url)
+
+const file=await res.json()
+
+fileSHA=file.sha
+
+const content=atob(file.content)
+
+data=JSON.parse(content)
+
+updateCalendar()
+
+}
 
 function openPanel(){
 
@@ -34,7 +61,7 @@ let day=new Date(selectedDate).getDay()
 
 let attendance="wfh"
 
-if(day===0 || day===6){
+if(day===0||day===6){
 
 attendance="holiday"
 
@@ -62,7 +89,7 @@ function addTask(){
 let name=document.getElementById("taskName").value
 let minutes=parseInt(document.getElementById("taskMinutes").value)
 
-if(!name || !minutes)return
+if(!name||!minutes)return
 
 data[selectedDate].tasks.push({
 
@@ -75,6 +102,7 @@ document.getElementById("taskName").value=""
 document.getElementById("taskMinutes").value=""
 
 renderTasks()
+
 updateTimeSummary()
 
 }
@@ -121,6 +149,35 @@ data[selectedDate].attendance=document.getElementById("attendanceSelect").value
 
 updateCalendar()
 
+saveDatabase()
+
+}
+
+async function saveDatabase(){
+
+const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`
+
+const content=btoa(JSON.stringify(data,null,2))
+
+await fetch(url,{
+
+method:"PUT",
+
+headers:{
+"Authorization":"token "+githubToken,
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+message:"update worklog",
+content:content,
+sha:fileSHA
+
+})
+
+})
+
 }
 
 function updateCalendar(){
@@ -133,9 +190,9 @@ let entry=data[date]
 
 let color=""
 
-if(entry.attendance==="wfo") color="green"
-if(entry.attendance==="leave") color="red"
-if(entry.attendance==="holiday") color="grey"
+if(entry.attendance==="wfo")color="green"
+if(entry.attendance==="leave")color="red"
+if(entry.attendance==="holiday")color="grey"
 
 if(color){
 
@@ -175,8 +232,8 @@ let wfh=0
 
 Object.values(data).forEach(d=>{
 
-if(d.attendance==="wfo") wfo++
-if(d.attendance==="wfh") wfh++
+if(d.attendance==="wfo")wfo++
+if(d.attendance==="wfh")wfh++
 
 })
 

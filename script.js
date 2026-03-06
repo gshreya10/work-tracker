@@ -2,7 +2,7 @@ const repoOwner="gshreya10"
 const repoName="work-tracker"
 const filePath="data/worklog.json"
 
-const githubToken="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"
+const githubToken="YOUR_NEW_TOKEN"
 
 let calendar
 let selectedDate=null
@@ -38,11 +38,14 @@ openPanel()
 
 })
 
-calendar.render()
-
 await loadDatabase()
 
-document.getElementById("attendanceSelect").addEventListener("change",attendanceChanged)
+calendar.render()
+
+updateCalendar()
+
+document.getElementById("attendanceSelect")
+.addEventListener("change",attendanceChanged)
 
 })
 
@@ -56,9 +59,8 @@ const res=await fetch(url)
 const file=await res.json()
 
 fileSHA=file.sha
-data=JSON.parse(atob(file.content))
 
-updateCalendar()
+data=JSON.parse(atob(file.content))
 
 }
 
@@ -84,6 +86,7 @@ sha:fileSHA
 })
 
 const result=await res.json()
+
 fileSHA=result.content.sha
 
 }
@@ -115,8 +118,6 @@ return h+"h "+min+"m"
 
 
 function openPanel(){
-
-if(!selectedDate) return
 
 document.getElementById("noSelection").style.display="none"
 document.getElementById("dayDetails").style.display="block"
@@ -161,8 +162,6 @@ saveDatabase()
 
 function addTask(){
 
-if(!selectedDate) return
-
 let name=document.getElementById("taskName").value.trim()
 let time=document.getElementById("taskTime").value.trim()
 
@@ -188,6 +187,7 @@ saveDatabase()
 function renderTasks(){
 
 let list=document.getElementById("taskList")
+
 list.innerHTML=""
 
 data[selectedDate].tasks.forEach((t,i)=>{
@@ -249,7 +249,8 @@ function updateTime(){
 let mins=data[selectedDate].tasks.reduce((a,b)=>a+b.minutes,0)
 
 let remain=420-mins
-if(remain<0) remain=0
+
+if(remain<0)remain=0
 
 document.getElementById("timeSummary").innerText=
 "Logged: "+formatMinutes(mins)+" | Remaining: "+formatMinutes(remain)
@@ -268,9 +269,9 @@ let e=data[d]
 
 let color=""
 
-if(e.attendance==="wfo") color="green"
-if(e.attendance==="leave") color="red"
-if(e.attendance==="holiday") color="grey"
+if(e.attendance==="wfo")color="green"
+if(e.attendance==="leave")color="red"
+if(e.attendance==="holiday")color="grey"
 
 if(color){
 
@@ -282,20 +283,45 @@ backgroundColor:color
 
 }
 
-let mins=e.tasks.reduce((a,b)=>a+b.minutes,0)
-
-if(mins>0){
-
-calendar.addEvent({
-title:formatMinutes(mins),
-start:d
 })
+
+renderDayProgress()
+
+updateAttendance()
+
+updateMonthSummary()
 
 }
 
-})
 
-updateAttendance()
+
+function renderDayProgress(){
+
+let cells=document.querySelectorAll(".fc-daygrid-day")
+
+cells.forEach(cell=>{
+
+let date=cell.getAttribute("data-date")
+
+if(!data[date]) return
+
+let mins=data[date].tasks.reduce((a,b)=>a+b.minutes,0)
+
+if(mins===0) return
+
+let el=document.createElement("div")
+
+el.className="dayProgress"
+
+el.innerText=formatMinutes(mins)+" / 7h"
+
+if(mins<420) el.classList.add("progressLow")
+else if(mins===420) el.classList.add("progressGood")
+else el.classList.add("progressOver")
+
+cell.querySelector(".fc-daygrid-day-frame").appendChild(el)
+
+})
 
 }
 
@@ -303,10 +329,10 @@ updateAttendance()
 
 function updateAttendance(){
 
-let view=calendar.view
+let view=calendar.getDate()
 
-let year=view.currentStart.getFullYear()
-let month=view.currentStart.getMonth()
+let year=view.getFullYear()
+let month=view.getMonth()
 
 let first=new Date(year,month,1)
 let last=new Date(year,month+1,0)
@@ -318,10 +344,10 @@ for(let d=new Date(first);d<=last;d.setDate(d.getDate()+1)){
 
 let key=d.toISOString().split("T")[0]
 
-if(!data[key]) continue
+if(!data[key])continue
 
-if(data[key].attendance==="wfo") wfo++
-if(data[key].attendance==="wfh") wfh++
+if(data[key].attendance==="wfo")wfo++
+if(data[key].attendance==="wfh")wfh++
 
 }
 
@@ -335,40 +361,52 @@ let el=document.getElementById("attendancePercent")
 
 el.innerText=pct+"%"
 
-if(pct<60) el.style.color="red"
+if(pct<60)el.style.color="red"
 else el.style.color="green"
 
 }
 
 
 
-function exportExcel(){
+function updateMonthSummary(){
 
-let rows=[]
+let view=calendar.getDate()
 
-Object.keys(data).forEach(date=>{
+let year=view.getFullYear()
+let month=view.getMonth()
 
-let entry=data[date]
+let first=new Date(year,month,1)
+let last=new Date(year,month+1,0)
 
-entry.tasks.forEach(t=>{
+let totalMinutes=0
+let workingDays=0
 
-rows.push({
-date:date,
-task:t.name,
-minutes:t.minutes,
-attendance:entry.attendance
-})
+for(let d=new Date(first);d<=last;d.setDate(d.getDate()+1)){
 
-})
+let day=d.getDay()
 
-})
+let key=d.toISOString().split("T")[0]
 
-let ws=XLSX.utils.json_to_sheet(rows)
+if(day!==0 && day!==6){
+workingDays++
+}
 
-let wb=XLSX.utils.book_new()
+if(data[key]){
+totalMinutes+=data[key].tasks.reduce((a,b)=>a+b.minutes,0)
+}
 
-XLSX.utils.book_append_sheet(wb,ws,"WorkLog")
+}
 
-XLSX.writeFile(wb,"work_log.xlsx")
+let expected=workingDays*420
+let diff=totalMinutes-expected
+
+document.getElementById("totalLogged").innerText=
+"Logged: "+formatMinutes(totalMinutes)
+
+document.getElementById("expectedHours").innerText=
+"Expected: "+formatMinutes(expected)
+
+document.getElementById("hourDifference").innerText=
+"Difference: "+formatMinutes(diff)
 
 }

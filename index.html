@@ -17,23 +17,17 @@
 <h2>Work Tracker</h2>
 
 <div id="topBar">
-
-<div>
-Work From Office % :
-<span id="attendancePercent">0%</span>
-</div>
-
+WFO % : <span id="attendancePercent">0%</span>
 </div>
 
 <div id="layout">
 
 <div id="calendar"></div>
 
-
 <div id="sidePanel">
 
 <div id="noSelection">
-Click a date on the calendar to log work.
+Click a date
 </div>
 
 <div id="dayDetails" style="display:none">
@@ -44,13 +38,29 @@ Click a date on the calendar to log work.
 
 <select id="attendanceSelect">
 
-<option value="wfh">Work From Home</option>
-<option value="wfo">Work From Office</option>
+<option value="wfh">WFH</option>
+<option value="wfo">WFO</option>
 <option value="leave">Leave</option>
+
+</select>
+
+<div id="leaveOptions" style="display:none">
+
+<label>Leave Type</label>
+
+<select id="leaveType">
+
+<option value="full">Full Day</option>
+<option value="half">Half Day</option>
 <option value="holiday">Holiday</option>
 
 </select>
 
+<label>Comment</label>
+
+<input id="commentInput">
+
+</div>
 
 <h4>Tasks</h4>
 
@@ -67,29 +77,22 @@ Click a date on the calendar to log work.
 <tbody id="taskList"></tbody>
 
 <tfoot>
+
 <tr>
 
-<td>
-<input id="taskName" placeholder="Task name">
-</td>
+<td><input id="taskName"></td>
 
-<td>
-<input id="taskTime" placeholder="3h 10m">
-</td>
+<td><input id="taskTime" placeholder="3h 10m"></td>
 
-<td>
-<button onclick="addTask()">+</button>
-</td>
+<td><button onclick="addTask()">+</button></td>
 
 </tr>
+
 </tfoot>
 
 </table>
 
-
-<div id="timeSummary">
-Logged: 0h | Remaining: 7h
-</div>
+<div id="timeSummary"></div>
 
 </div>
 

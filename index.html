@@ -35,7 +35,13 @@ Work From Office % :
 
 <div id="sidePanel">
 
-<h3 id="panelDate">Select a Day</h3>
+<div id="noSelection">
+Click a date on the calendar to log work.
+</div>
+
+<div id="dayDetails" style="display:none">
+
+<h3 id="panelDate"></h3>
 
 <label>Attendance</label>
 
@@ -66,7 +72,7 @@ Work From Office % :
 <tr>
 <td><input id="taskName"></td>
 <td><input id="taskTime" placeholder="3h 10m"></td>
-<td><button onclick="addTask()">➕</button></td>
+<td><button onclick="addTask()">+</button></td>
 </tr>
 </tfoot>
 
@@ -74,11 +80,9 @@ Work From Office % :
 
 <hr>
 
-<div id="timeSummary">
-Logged: 0h 0m | Remaining: 7h 0m
-</div>
+<div id="timeSummary"></div>
 
-<button onclick="saveDay()">Save Day</button>
+</div>
 
 </div>
 

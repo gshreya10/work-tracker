@@ -5,11 +5,11 @@ const filePath="data/worklog.json"
 const githubToken="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"
 
 let calendar
-let selectedDate=null
 let data={}
+let selectedDate=null
 
 
-document.addEventListener("DOMContentLoaded",async function(){
+document.addEventListener("DOMContentLoaded",async()=>{
 
 const calendarEl=document.getElementById("calendar")
 
@@ -22,15 +22,14 @@ dayCellDidMount:function(info){
 
 let d=info.date.getDay()
 
-if(d===0||d===6){
-info.el.classList.add("weekend")
-}
+if(d===0||d===6) info.el.classList.add("weekend")
 
 },
 
 dateClick:function(info){
 
 selectedDate=info.dateStr
+
 openPanel()
 
 }
@@ -43,21 +42,7 @@ calendar.render()
 
 updateCalendar()
 
-document.addEventListener("click",function(e){
-
-if(!e.target.closest("#calendar") && !e.target.closest("#sidePanel")){
-
-closePanel()
-
-}
-
 })
-
-document.getElementById("attendanceSelect")
-.addEventListener("change",attendanceChanged)
-
-})
-
 
 
 async function loadDatabase(){
@@ -71,7 +56,6 @@ const file=await res.json()
 data=JSON.parse(atob(file.content))
 
 }
-
 
 
 async function saveDatabase(){
@@ -102,7 +86,6 @@ sha:latestFile.sha
 }
 
 
-
 function openPanel(){
 
 document.getElementById("noSelection").style.display="none"
@@ -116,13 +99,11 @@ let d=new Date(selectedDate).getDay()
 
 let att="wfh"
 
-if(d===0||d===6) att="holiday"
+if(d===0||d===6) att="leave"
 
 data[selectedDate]={attendance:att,tasks:[]}
 
 }
-
-document.getElementById("attendanceSelect").value=data[selectedDate].attendance
 
 renderTasks()
 
@@ -131,35 +112,7 @@ updateTime()
 }
 
 
-
-function closePanel(){
-
-document.getElementById("dayDetails").style.display="none"
-document.getElementById("noSelection").style.display="block"
-
-selectedDate=null
-
-}
-
-
-
-function attendanceChanged(){
-
-if(!selectedDate) return
-
-data[selectedDate].attendance=this.value
-
-updateCalendar()
-
-saveDatabase()
-
-}
-
-
-
 function parseTime(t){
-
-t=t.toLowerCase()
 
 let h=(t.match(/(\d+)h/)||[])[1]||0
 let m=(t.match(/(\d+)m/)||[])[1]||0
@@ -167,7 +120,6 @@ let m=(t.match(/(\d+)m/)||[])[1]||0
 return parseInt(h)*60+parseInt(m)
 
 }
-
 
 
 function formatMinutes(m){
@@ -180,20 +132,16 @@ return h+"h "+min+"m"
 }
 
 
-
 function addTask(){
 
-let name=document.getElementById("taskName").value.trim()
-let time=document.getElementById("taskTime").value.trim()
+let name=document.getElementById("taskName").value
+let time=document.getElementById("taskTime").value
 
 if(!name||!time) return
 
 let mins=parseTime(time)
 
 data[selectedDate].tasks.push({name:name,minutes:mins})
-
-document.getElementById("taskName").value=""
-document.getElementById("taskTime").value=""
 
 renderTasks()
 
@@ -202,7 +150,6 @@ updateTime()
 saveDatabase()
 
 }
-
 
 
 function renderTasks(){
@@ -216,9 +163,11 @@ data[selectedDate].tasks.forEach((t,i)=>{
 let row=document.createElement("tr")
 
 row.innerHTML=`
-<td><input value="${t.name}" onchange="updateTaskName(${i},this.value)"></td>
-<td><input value="${formatMinutes(t.minutes)}" onchange="updateTaskTime(${i},this.value)"></td>
+
+<td>${t.name}</td>
+<td>${formatMinutes(t.minutes)}</td>
 <td><span class="icon" onclick="deleteTask(${i})">🗑</span></td>
+
 `
 
 list.appendChild(row)
@@ -226,29 +175,6 @@ list.appendChild(row)
 })
 
 }
-
-
-
-function updateTaskName(i,v){
-
-data[selectedDate].tasks[i].name=v
-
-saveDatabase()
-
-}
-
-
-
-function updateTaskTime(i,v){
-
-data[selectedDate].tasks[i].minutes=parseTime(v)
-
-updateTime()
-
-saveDatabase()
-
-}
-
 
 
 function deleteTask(i){
@@ -264,20 +190,26 @@ saveDatabase()
 }
 
 
-
 function updateTime(){
 
 let mins=data[selectedDate].tasks.reduce((a,b)=>a+b.minutes,0)
 
-let remain=420-mins
+let panel=document.getElementById("sidePanel")
 
-if(remain<0)remain=0
+panel.classList.remove("panelPink","panelGreen","panelYellow")
+
+if(mins===0){}
+
+else if(mins<420) panel.classList.add("panelPink")
+
+else if(mins===420) panel.classList.add("panelGreen")
+
+else panel.classList.add("panelYellow")
 
 document.getElementById("timeSummary").innerText=
-"Logged: "+formatMinutes(mins)+" | Remaining: "+formatMinutes(remain)
+"Logged: "+formatMinutes(mins)+" / 7h"
 
 }
-
 
 
 function updateCalendar(){
@@ -290,9 +222,9 @@ let e=data[d]
 
 let color=""
 
-if(e.attendance==="wfo")color="green"
-if(e.attendance==="leave")color="red"
-if(e.attendance==="holiday")color="grey"
+if(e.attendance==="wfo") color="green"
+if(e.attendance==="leave") color="red"
+if(e.attendance==="holiday") color="grey"
 
 if(color){
 
@@ -311,7 +243,6 @@ updateAttendance()
 }
 
 
-
 function updateAttendance(){
 
 let view=calendar.getDate()
@@ -323,32 +254,31 @@ let first=new Date(year,month,1)
 let last=new Date(year,month+1,0)
 
 let wfo=0
-let workingDays=0
+let wfh=0
+let half=0
 
 for(let d=new Date(first);d<=last;d.setDate(d.getDate()+1)){
 
-let day=d.getDay()
-
 let key=d.toISOString().split("T")[0]
 
-if(day===0||day===6) continue
+if(!data[key]) continue
 
-workingDays++
+let att=data[key].attendance
 
-if(data[key] && data[key].attendance==="wfo"){
-wfo++
+if(att==="wfo") wfo++
+
+if(att==="wfh") wfh++
+
+if(att==="half") half++
+
 }
 
-}
+let denom=wfo+wfh+(half*0.5)
 
 let pct=0
 
-if(workingDays>0){
-pct=((wfo*100)/workingDays).toFixed(2)
-}
+if(denom>0) pct=((wfo*100)/denom).toFixed(2)
 
-let el=document.getElementById("attendancePercent")
-
-el.innerText=pct+"%"
+document.getElementById("attendancePercent").innerText=pct+"%"
 
 }

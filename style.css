@@ -3,66 +3,28 @@ font-family:Arial;
 margin:40px;
 }
 
-#topBar{
-display:flex;
-justify-content:space-between;
-max-width:1200px;
-margin-bottom:20px;
-}
-
-.wfoIndicator{
-font-weight:bold;
-font-size:18px;
-}
-
 #layout{
 display:grid;
 grid-template-columns:2fr 1fr;
 gap:30px;
 }
 
-#calendar{
-max-width:900px;
-}
-
-#sidePanel{
-border:1px solid #ddd;
-padding:20px;
-background:#fafafa;
-}
-
 #taskTable{
 width:100%;
 border-collapse:collapse;
-margin-top:10px;
 }
 
 #taskTable th{
+border-bottom:1px solid #ccc;
 text-align:left;
-border-bottom:1px solid #ddd;
-padding:6px;
 }
 
-#taskTable td{
-padding:6px;
-}
-
-.iconBtn{
+.icon{
 cursor:pointer;
-margin-left:8px;
+margin-left:6px;
 }
 
-input{
-width:100%;
-padding:6px;
-}
-
-button{
-padding:6px 10px;
-cursor:pointer;
-}
-
-#timeSummary{
-margin-top:10px;
+.indicator{
 font-weight:bold;
+font-size:18px;
 }

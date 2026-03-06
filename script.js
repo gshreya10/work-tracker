@@ -10,7 +10,7 @@ let data={}
 let fileSHA=null
 
 
-document.addEventListener("DOMContentLoaded",function(){
+document.addEventListener("DOMContentLoaded",async function(){
 
 const calendarEl=document.getElementById("calendar")
 
@@ -40,7 +40,9 @@ openPanel()
 
 calendar.render()
 
-loadDatabase()
+await loadDatabase()
+
+document.getElementById("attendanceSelect").addEventListener("change",attendanceChanged)
 
 })
 
@@ -54,7 +56,6 @@ const res=await fetch(url)
 const file=await res.json()
 
 fileSHA=file.sha
-
 data=JSON.parse(atob(file.content))
 
 updateCalendar()
@@ -83,7 +84,6 @@ sha:fileSHA
 })
 
 const result=await res.json()
-
 fileSHA=result.content.sha
 
 }
@@ -97,7 +97,7 @@ input=input.toLowerCase().trim()
 let h=(input.match(/(\d+)h/)||[])[1]||0
 let m=(input.match(/(\d+)m/)||[])[1]||0
 
-return parseInt(h)*60 + parseInt(m)
+return parseInt(h)*60+parseInt(m)
 
 }
 
@@ -133,10 +133,7 @@ if(d===0||d===6){
 att="holiday"
 }
 
-data[selectedDate]={
-attendance:att,
-tasks:[]
-}
+data[selectedDate]={attendance:att,tasks:[]}
 
 }
 
@@ -149,7 +146,7 @@ updateTime()
 
 
 
-document.getElementById("attendanceSelect").addEventListener("change",function(){
+function attendanceChanged(){
 
 if(!selectedDate) return
 
@@ -158,7 +155,7 @@ data[selectedDate].attendance=this.value
 updateCalendar()
 saveDatabase()
 
-})
+}
 
 
 
@@ -173,10 +170,7 @@ if(!name||!time) return
 
 let mins=parseTime(time)
 
-data[selectedDate].tasks.push({
-name:name,
-minutes:mins
-})
+data[selectedDate].tasks.push({name:name,minutes:mins})
 
 document.getElementById("taskName").value=""
 document.getElementById("taskTime").value=""
@@ -194,7 +188,6 @@ saveDatabase()
 function renderTasks(){
 
 let list=document.getElementById("taskList")
-
 list.innerHTML=""
 
 data[selectedDate].tasks.forEach((t,i)=>{
@@ -256,7 +249,6 @@ function updateTime(){
 let mins=data[selectedDate].tasks.reduce((a,b)=>a+b.minutes,0)
 
 let remain=420-mins
-
 if(remain<0) remain=0
 
 document.getElementById("timeSummary").innerText=

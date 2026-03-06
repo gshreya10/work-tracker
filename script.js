@@ -30,7 +30,10 @@ info.el.classList.add("weekend")
 
 dateClick:function(info){
 
-selectedDate=info.dateStr
+selectedDate = info.dateStr
+
+console.log("Selected:", selectedDate)
+
 openPanel()
 
 }
@@ -105,20 +108,35 @@ return h+"h "+min+"m"
 
 function openPanel(){
 
-document.getElementById("noSelection").style.display="none"
-document.getElementById("dayDetails").style.display="block"
+if(!selectedDate) return
 
-document.getElementById("panelDate").innerText=selectedDate
+document.getElementById("noSelection").style.display = "none"
+document.getElementById("dayDetails").style.display = "block"
+
+document.getElementById("panelDate").innerText = selectedDate
 
 if(!data[selectedDate]){
 
-let d=new Date(selectedDate).getDay()
+let d = new Date(selectedDate).getDay()
 
-let att="wfh"
+let att = "wfh"
 
-if(d===0||d===6) att="holiday"
+if(d === 0 || d === 6){
+att = "holiday"
+}
 
-data[selectedDate]={attendance:att,tasks:[]}
+data[selectedDate] = {
+attendance: att,
+tasks: []
+}
+
+}
+
+document.getElementById("attendanceSelect").value =
+data[selectedDate].attendance
+
+renderTasks()
+updateTime()
 
 }
 

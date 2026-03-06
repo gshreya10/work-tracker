@@ -16,6 +16,17 @@ const calendarEl=document.getElementById("calendar")
 calendar=new FullCalendar.Calendar(calendarEl,{
 
 initialView:"dayGridMonth",
+firstDay:1,
+
+dayCellDidMount:function(info){
+
+let day=info.date.getDay()
+
+if(day===0||day===6){
+info.el.classList.add("weekend")
+}
+
+},
 
 dateClick:function(info){
 
@@ -37,7 +48,6 @@ async function loadDatabase(){
 const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`
 
 const res=await fetch(url)
-
 const file=await res.json()
 
 fileSHA=file.sha
@@ -55,20 +65,16 @@ const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${file
 const content=btoa(JSON.stringify(data,null,2))
 
 const res=await fetch(url,{
-
 method:"PUT",
-
 headers:{
 Authorization:"token "+githubToken,
 "Content-Type":"application/json"
 },
-
 body:JSON.stringify({
 message:"update worklog",
 content:content,
 sha:fileSHA
 })
-
 })
 
 const result=await res.json()
@@ -77,8 +83,9 @@ fileSHA=result.content.sha
 
 }
 
-function persist(){
+function saveDay(){
 saveDatabase()
+alert("Saved")
 }
 
 function formatMinutes(m){
@@ -97,7 +104,7 @@ t=t.toLowerCase()
 let h=(t.match(/(\d+)h/)||[])[1]||0
 let m=(t.match(/(\d+)m/)||[])[1]||0
 
-return (parseInt(h)*60)+parseInt(m)
+return parseInt(h)*60+parseInt(m)
 
 }
 
@@ -111,11 +118,11 @@ let d=new Date(selectedDate).getDay()
 
 let att="wfh"
 
-if(d===0||d===6) att="holiday"
+if(d===0||d===6){
+att="holiday"
+}
 
 data[selectedDate]={attendance:att,tasks:[]}
-
-persist()
 
 }
 
@@ -128,11 +135,9 @@ updateTime()
 
 document.getElementById("attendanceSelect").addEventListener("change",function(){
 
-if(!selectedDate) return
+if(!selectedDate)return
 
 data[selectedDate].attendance=this.value
-
-persist()
 
 updateCalendar()
 
@@ -143,13 +148,11 @@ function addTask(){
 let name=document.getElementById("taskName").value
 let time=document.getElementById("taskTime").value
 
-if(!name||!time) return
+if(!name||!time)return
 
 let mins=parseTime(time)
 
 data[selectedDate].tasks.push({name:name,minutes:mins})
-
-persist()
 
 renderTasks()
 updateTime()
@@ -182,11 +185,15 @@ list.appendChild(row)
 
 }
 
-function deleteTask(i){
+function editTask(i){
 
-data[selectedDate].tasks.splice(i,1)
+let task=data[selectedDate].tasks[i]
 
-persist()
+let name=prompt("Task",task.name)
+let time=prompt("Time",formatMinutes(task.minutes))
+
+task.name=name
+task.minutes=parseTime(time)
 
 renderTasks()
 updateTime()
@@ -194,17 +201,9 @@ updateCalendar()
 
 }
 
-function editTask(i){
+function deleteTask(i){
 
-let task=data[selectedDate].tasks[i]
-
-let name=prompt("Task",task.name)
-let time=prompt("Time (example 2h 30m)",formatMinutes(task.minutes))
-
-task.name=name
-task.minutes=parseTime(time)
-
-persist()
+data[selectedDate].tasks.splice(i,1)
 
 renderTasks()
 updateTime()
@@ -217,36 +216,10 @@ function updateTime(){
 let mins=data[selectedDate].tasks.reduce((a,b)=>a+b.minutes,0)
 
 let remain=420-mins
-
-if(remain<0) remain=0
+if(remain<0)remain=0
 
 document.getElementById("timeSummary").innerText=
 "Logged: "+formatMinutes(mins)+" | Remaining: "+formatMinutes(remain)
-
-}
-
-function renderWeekends(){
-
-let view=calendar.view
-
-let start=new Date(view.currentStart)
-let end=new Date(view.currentEnd)
-
-for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-
-let day=d.getDay()
-
-if(day===0||day===6){
-
-calendar.addEvent({
-start:d.toISOString().split("T")[0],
-display:"background",
-backgroundColor:"#e6e6e6"
-})
-
-}
-
-}
 
 }
 
@@ -254,17 +227,15 @@ function updateCalendar(){
 
 calendar.removeAllEvents()
 
-renderWeekends()
-
 Object.keys(data).forEach(d=>{
 
 let e=data[d]
 
 let color=""
 
-if(e.attendance==="wfo") color="green"
-if(e.attendance==="leave") color="red"
-if(e.attendance==="holiday") color="grey"
+if(e.attendance==="wfo")color="green"
+if(e.attendance==="leave")color="red"
+if(e.attendance==="holiday")color="grey"
 
 if(color){
 
@@ -307,10 +278,10 @@ for(let d=new Date(start);d<end;d.setDate(d.getDate()+1)){
 
 let key=d.toISOString().split("T")[0]
 
-if(!data[key]) continue
+if(!data[key])continue
 
-if(data[key].attendance==="wfo") wfo++
-if(data[key].attendance==="wfh") wfh++
+if(data[key].attendance==="wfo")wfo++
+if(data[key].attendance==="wfh")wfh++
 
 }
 
@@ -324,7 +295,7 @@ let el=document.getElementById("attendancePercent")
 
 el.innerText=pct+"%"
 
-if(pct<60) el.style.color="red"
+if(pct<60)el.style.color="red"
 else el.style.color="green"
 
 }

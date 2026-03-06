@@ -1,14 +1,7 @@
-const repoOwner="gshreya10"
-const repoName="work-tracker"
-const filePath="data/worklog.json"
-
-const githubToken="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"
-
 let calendar
 let selectedDate=null
-let fileSHA=null
 
-let data={}
+let data = JSON.parse(localStorage.getItem("worktracker") || "{}")
 
 document.addEventListener("DOMContentLoaded",function(){
 
@@ -29,26 +22,12 @@ openPanel()
 
 calendar.render()
 
-loadDatabase()
+updateCalendar()
 
 })
 
-async function loadDatabase(){
-
-const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`
-
-const res=await fetch(url)
-
-const file=await res.json()
-
-fileSHA=file.sha
-
-const content=atob(file.content)
-
-data=JSON.parse(content)
-
-updateCalendar()
-
+function persist(){
+localStorage.setItem("worktracker",JSON.stringify(data))
 }
 
 function openPanel(){
@@ -62,66 +41,139 @@ let day=new Date(selectedDate).getDay()
 let attendance="wfh"
 
 if(day===0||day===6){
-
 attendance="holiday"
-
 }
 
-data[selectedDate]={
+data[selectedDate]={attendance:attendance,tasks:[]}
 
-attendance:attendance,
-tasks:[]
-
-}
+persist()
 
 }
 
 document.getElementById("attendanceSelect").value=data[selectedDate].attendance
 
 renderTasks()
-
 updateTimeSummary()
+
+}
+
+document.getElementById("attendanceSelect").addEventListener("change",function(){
+
+if(!selectedDate)return
+
+data[selectedDate].attendance=this.value
+
+persist()
+
+updateCalendar()
+
+})
+
+function parseTime(input){
+
+input=input.toLowerCase().trim()
+
+let hours=0
+let minutes=0
+
+let hMatch=input.match(/(\d+)\s*h/)
+let mMatch=input.match(/(\d+)\s*m/)
+
+if(hMatch) hours=parseInt(hMatch[1])
+if(mMatch) minutes=parseInt(mMatch[1])
+
+if(!hMatch && !mMatch){
+minutes=parseInt(input)
+}
+
+return (hours*60)+minutes
+
+}
+
+function formatMinutes(minutes){
+
+let h=Math.floor(minutes/60)
+let m=minutes%60
+
+return h+"h "+m+"m"
 
 }
 
 function addTask(){
 
 let name=document.getElementById("taskName").value
-let minutes=parseInt(document.getElementById("taskMinutes").value)
+let time=document.getElementById("taskTime").value
 
-if(!name||!minutes)return
+if(!name||!time)return
 
-data[selectedDate].tasks.push({
+let minutes=parseTime(time)
 
-name:name,
-minutes:minutes
-
-})
+data[selectedDate].tasks.push({name:name,minutes:minutes})
 
 document.getElementById("taskName").value=""
-document.getElementById("taskMinutes").value=""
+document.getElementById("taskTime").value=""
+
+persist()
 
 renderTasks()
-
 updateTimeSummary()
+updateCalendar()
 
 }
 
 function renderTasks(){
 
 let list=document.getElementById("taskList")
-
 list.innerHTML=""
 
-data[selectedDate].tasks.forEach(t=>{
+data[selectedDate].tasks.forEach((t,index)=>{
 
-let div=document.createElement("div")
+let row=document.createElement("tr")
 
-div.innerText=t.name+" ("+t.minutes+"m)"
+row.innerHTML=`
+<td>${t.name}</td>
+<td>${formatMinutes(t.minutes)}</td>
+<td>
+<span class="iconBtn" onclick="editTask(${index})">✏️</span>
+<span class="iconBtn" onclick="deleteTask(${index})">🗑️</span>
+</td>
+`
 
-list.appendChild(div)
+list.appendChild(row)
 
 })
+
+}
+
+function deleteTask(index){
+
+data[selectedDate].tasks.splice(index,1)
+
+persist()
+
+renderTasks()
+updateTimeSummary()
+updateCalendar()
+
+}
+
+function editTask(index){
+
+let task=data[selectedDate].tasks[index]
+
+let newName=prompt("Task name",task.name)
+let newTime=prompt("Time (example 2h 30m)",formatMinutes(task.minutes))
+
+if(!newName||!newTime)return
+
+task.name=newName
+task.minutes=parseTime(newTime)
+
+persist()
+
+renderTasks()
+updateTimeSummary()
+updateCalendar()
 
 }
 
@@ -131,52 +183,37 @@ let tasks=data[selectedDate].tasks
 
 let minutes=tasks.reduce((a,b)=>a+b.minutes,0)
 
-let hours=(minutes/60).toFixed(1)
-
-let remaining=(420-minutes)/60
-
-remaining=remaining.toFixed(1)
+let remaining=420-minutes
+if(remaining<0) remaining=0
 
 document.getElementById("timeSummary").innerText=
-
-"Logged: "+hours+"h | Remaining: "+remaining+"h"
-
-}
-
-function saveDay(){
-
-data[selectedDate].attendance=document.getElementById("attendanceSelect").value
-
-updateCalendar()
-
-saveDatabase()
+"Logged: "+formatMinutes(minutes)+" | Remaining: "+formatMinutes(remaining)
 
 }
 
-async function saveDatabase(){
+function renderWeekends(){
 
-const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`
+let view=calendar.view
+let start=new Date(view.currentStart)
+let end=new Date(view.currentEnd)
 
-const content=btoa(JSON.stringify(data,null,2))
+for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
 
-await fetch(url,{
+let day=d.getDay()
 
-method:"PUT",
+if(day===0||day===6){
 
-headers:{
-"Authorization":"token "+githubToken,
-"Content-Type":"application/json"
-},
+let dateStr=d.toISOString().split("T")[0]
 
-body:JSON.stringify({
-
-message:"update worklog",
-content:content,
-sha:fileSHA
-
+calendar.addEvent({
+start:dateStr,
+display:"background",
+backgroundColor:"#e6e6e6"
 })
 
-})
+}
+
+}
 
 }
 
@@ -184,100 +221,8 @@ function updateCalendar(){
 
 calendar.removeAllEvents()
 
-Object.keys(data).forEach(date=>{
-
-let entry=data[date]
-
-let color=""
-
-if(entry.attendance==="wfo")color="green"
-if(entry.attendance==="leave")color="red"
-if(entry.attendance==="holiday")color="grey"
-
-if(color){
-
-calendar.addEvent({
-
-start:date,
-display:"background",
-backgroundColor:color
-
-})
-
-}
-
-let minutes=entry.tasks.reduce((a,b)=>a+b.minutes,0)
-
-if(minutes>0){
-
-calendar.addEvent({
-
-title:(minutes/60).toFixed(1)+"h",
-start:date
-
-})
-
-}
-
-})
-
-updateAttendance()
-
-}
-
-function updateAttendance(){
-
-let wfo=0
-let wfh=0
-
-Object.values(data).forEach(d=>{
-
-if(d.attendance==="wfo")wfo++
-if(d.attendance==="wfh")wfh++
-
-})
-
-let percent=0
-
-if(wfo+wfh>0){
-
-percent=Math.round((wfo/(wfo+wfh))*100)
-
-}
-
-document.getElementById("attendancePercent").innerText=percent+"%"
-
-}
-
-function exportExcel(){
-
-let rows=[]
+renderWeekends()
 
 Object.keys(data).forEach(date=>{
 
-let entry=data[date]
-
-entry.tasks.forEach(t=>{
-
-rows.push({
-
-date:date,
-task:t.name,
-minutes:t.minutes,
-attendance:entry.attendance
-
-})
-
-})
-
-})
-
-let ws=XLSX.utils.json_to_sheet(rows)
-
-let wb=XLSX.utils.book_new()
-
-XLSX.utils.book_append_sheet(wb,ws,"WorkLog")
-
-XLSX.writeFile(wb,"work_log.xlsx")
-
-}
+let entry=data[date

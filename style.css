@@ -9,6 +9,16 @@ grid-template-columns:2fr 1fr;
 gap:30px;
 }
 
+#calendar{
+max-width:900px;
+}
+
+#sidePanel{
+border:1px solid #ddd;
+padding:20px;
+background:#fafafa;
+}
+
 #taskTable{
 width:100%;
 border-collapse:collapse;

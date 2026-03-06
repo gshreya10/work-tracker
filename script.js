@@ -1,5 +1,5 @@
 let calendar
-let selectedDate
+let selectedDate=null
 
 let data={}
 
@@ -14,8 +14,7 @@ initialView:"dayGridMonth",
 dateClick:function(info){
 
 selectedDate=info.dateStr
-
-openModal()
+openPanel()
 
 }
 
@@ -25,31 +24,36 @@ calendar.render()
 
 })
 
-function openModal(){
+function openPanel(){
 
-document.getElementById("taskModal").style.display="block"
-
-document.getElementById("modalDate").innerText=selectedDate
+document.getElementById("panelDate").innerText=selectedDate
 
 if(!data[selectedDate]){
 
+let day=new Date(selectedDate).getDay()
+
+let attendance="wfh"
+
+if(day===0 || day===6){
+
+attendance="holiday"
+
+}
+
 data[selectedDate]={
 
-attendance:"wfh",
-
+attendance:attendance,
 tasks:[]
 
 }
 
 }
 
+document.getElementById("attendanceSelect").value=data[selectedDate].attendance
+
 renderTasks()
 
-}
-
-function closeModal(){
-
-document.getElementById("taskModal").style.display="none"
+updateTimeSummary()
 
 }
 
@@ -58,6 +62,8 @@ function addTask(){
 let name=document.getElementById("taskName").value
 let minutes=parseInt(document.getElementById("taskMinutes").value)
 
+if(!name || !minutes)return
+
 data[selectedDate].tasks.push({
 
 name:name,
@@ -65,7 +71,11 @@ minutes:minutes
 
 })
 
+document.getElementById("taskName").value=""
+document.getElementById("taskMinutes").value=""
+
 renderTasks()
+updateTimeSummary()
 
 }
 
@@ -79,9 +89,7 @@ data[selectedDate].tasks.forEach(t=>{
 
 let div=document.createElement("div")
 
-div.className="task"
-
-div.innerText=t.name+" "+t.minutes+"m"
+div.innerText=t.name+" ("+t.minutes+"m)"
 
 list.appendChild(div)
 
@@ -89,13 +97,29 @@ list.appendChild(div)
 
 }
 
+function updateTimeSummary(){
+
+let tasks=data[selectedDate].tasks
+
+let minutes=tasks.reduce((a,b)=>a+b.minutes,0)
+
+let hours=(minutes/60).toFixed(1)
+
+let remaining=(420-minutes)/60
+
+remaining=remaining.toFixed(1)
+
+document.getElementById("timeSummary").innerText=
+
+"Logged: "+hours+"h | Remaining: "+remaining+"h"
+
+}
+
 function saveDay(){
 
-data[selectedDate].attendance=document.getElementById("attendance").value
+data[selectedDate].attendance=document.getElementById("attendanceSelect").value
 
 updateCalendar()
-
-closeModal()
 
 }
 
@@ -113,9 +137,7 @@ if(entry.attendance==="wfo") color="green"
 if(entry.attendance==="leave") color="red"
 if(entry.attendance==="holiday") color="grey"
 
-let minutes=entry.tasks.reduce((a,b)=>a+b.minutes,0)
-
-let hours=Math.round(minutes/60*10)/10
+if(color){
 
 calendar.addEvent({
 
@@ -125,12 +147,20 @@ backgroundColor:color
 
 })
 
+}
+
+let minutes=entry.tasks.reduce((a,b)=>a+b.minutes,0)
+
+if(minutes>0){
+
 calendar.addEvent({
 
-title:hours+"h",
+title:(minutes/60).toFixed(1)+"h",
 start:date
 
 })
+
+}
 
 })
 
@@ -176,7 +206,8 @@ rows.push({
 
 date:date,
 task:t.name,
-minutes:t.minutes
+minutes:t.minutes,
+attendance:entry.attendance
 
 })
 
@@ -188,7 +219,7 @@ let ws=XLSX.utils.json_to_sheet(rows)
 
 let wb=XLSX.utils.book_new()
 
-XLSX.utils.book_append_sheet(wb,ws,"Work")
+XLSX.utils.book_append_sheet(wb,ws,"WorkLog")
 
 XLSX.writeFile(wb,"work_log.xlsx")
 

@@ -2,12 +2,11 @@ const repoOwner="gshreya10"
 const repoName="work-tracker"
 const filePath="data/worklog.json"
 
-const githubToken="YOUR_NEW_TOKEN"
+const githubToken="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"
 
 let calendar
 let selectedDate=null
 let data={}
-let fileSHA=null
 
 
 document.addEventListener("DOMContentLoaded",async function(){
@@ -44,6 +43,16 @@ calendar.render()
 
 updateCalendar()
 
+document.addEventListener("click",function(e){
+
+if(!e.target.closest("#calendar") && !e.target.closest("#sidePanel")){
+
+closePanel()
+
+}
+
+})
+
 document.getElementById("attendanceSelect")
 .addEventListener("change",attendanceChanged)
 
@@ -56,9 +65,8 @@ async function loadDatabase(){
 const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`
 
 const res=await fetch(url)
-const file=await res.json()
 
-fileSHA=file.sha
+const file=await res.json()
 
 data=JSON.parse(atob(file.content))
 
@@ -70,48 +78,26 @@ async function saveDatabase(){
 
 const url=`https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`
 
+const latest=await fetch(url,{
+headers:{Authorization:"token "+githubToken}
+})
+
+const latestFile=await latest.json()
+
 const content=btoa(JSON.stringify(data,null,2))
 
-const res=await fetch(url,{
+await fetch(url,{
 method:"PUT",
 headers:{
 Authorization:"token "+githubToken,
 "Content-Type":"application/json"
 },
 body:JSON.stringify({
-message:"update worklog",
+message:"update",
 content:content,
-sha:fileSHA
+sha:latestFile.sha
 })
 })
-
-const result=await res.json()
-
-fileSHA=result.content.sha
-
-}
-
-
-
-function parseTime(input){
-
-input=input.toLowerCase().trim()
-
-let h=(input.match(/(\d+)h/)||[])[1]||0
-let m=(input.match(/(\d+)m/)||[])[1]||0
-
-return parseInt(h)*60+parseInt(m)
-
-}
-
-
-
-function formatMinutes(m){
-
-let h=Math.floor(m/60)
-let min=m%60
-
-return h+"h "+min+"m"
 
 }
 
@@ -130,9 +116,7 @@ let d=new Date(selectedDate).getDay()
 
 let att="wfh"
 
-if(d===0||d===6){
-att="holiday"
-}
+if(d===0||d===6) att="holiday"
 
 data[selectedDate]={attendance:att,tasks:[]}
 
@@ -141,7 +125,19 @@ data[selectedDate]={attendance:att,tasks:[]}
 document.getElementById("attendanceSelect").value=data[selectedDate].attendance
 
 renderTasks()
+
 updateTime()
+
+}
+
+
+
+function closePanel(){
+
+document.getElementById("dayDetails").style.display="none"
+document.getElementById("noSelection").style.display="block"
+
+selectedDate=null
 
 }
 
@@ -154,7 +150,32 @@ if(!selectedDate) return
 data[selectedDate].attendance=this.value
 
 updateCalendar()
+
 saveDatabase()
+
+}
+
+
+
+function parseTime(t){
+
+t=t.toLowerCase()
+
+let h=(t.match(/(\d+)h/)||[])[1]||0
+let m=(t.match(/(\d+)m/)||[])[1]||0
+
+return parseInt(h)*60+parseInt(m)
+
+}
+
+
+
+function formatMinutes(m){
+
+let h=Math.floor(m/60)
+let min=m%60
+
+return h+"h "+min+"m"
 
 }
 
@@ -175,8 +196,8 @@ document.getElementById("taskName").value=""
 document.getElementById("taskTime").value=""
 
 renderTasks()
+
 updateTime()
-updateCalendar()
 
 saveDatabase()
 
@@ -211,6 +232,7 @@ list.appendChild(row)
 function updateTaskName(i,v){
 
 data[selectedDate].tasks[i].name=v
+
 saveDatabase()
 
 }
@@ -222,7 +244,6 @@ function updateTaskTime(i,v){
 data[selectedDate].tasks[i].minutes=parseTime(v)
 
 updateTime()
-updateCalendar()
 
 saveDatabase()
 
@@ -235,8 +256,8 @@ function deleteTask(i){
 data[selectedDate].tasks.splice(i,1)
 
 renderTasks()
+
 updateTime()
-updateCalendar()
 
 saveDatabase()
 
@@ -285,43 +306,7 @@ backgroundColor:color
 
 })
 
-renderDayProgress()
-
 updateAttendance()
-
-updateMonthSummary()
-
-}
-
-
-
-function renderDayProgress(){
-
-let cells=document.querySelectorAll(".fc-daygrid-day")
-
-cells.forEach(cell=>{
-
-let date=cell.getAttribute("data-date")
-
-if(!data[date]) return
-
-let mins=data[date].tasks.reduce((a,b)=>a+b.minutes,0)
-
-if(mins===0) return
-
-let el=document.createElement("div")
-
-el.className="dayProgress"
-
-el.innerText=formatMinutes(mins)+" / 7h"
-
-if(mins<420) el.classList.add("progressLow")
-else if(mins===420) el.classList.add("progressGood")
-else el.classList.add("progressOver")
-
-cell.querySelector(".fc-daygrid-day-frame").appendChild(el)
-
-})
 
 }
 
@@ -338,47 +323,6 @@ let first=new Date(year,month,1)
 let last=new Date(year,month+1,0)
 
 let wfo=0
-let wfh=0
-
-for(let d=new Date(first);d<=last;d.setDate(d.getDate()+1)){
-
-let key=d.toISOString().split("T")[0]
-
-if(!data[key])continue
-
-if(data[key].attendance==="wfo")wfo++
-if(data[key].attendance==="wfh")wfh++
-
-}
-
-let pct=0
-
-if(wfo+wfh>0){
-pct=((wfo*100)/(wfo+wfh)).toFixed(2)
-}
-
-let el=document.getElementById("attendancePercent")
-
-el.innerText=pct+"%"
-
-if(pct<60)el.style.color="red"
-else el.style.color="green"
-
-}
-
-
-
-function updateMonthSummary(){
-
-let view=calendar.getDate()
-
-let year=view.getFullYear()
-let month=view.getMonth()
-
-let first=new Date(year,month,1)
-let last=new Date(year,month+1,0)
-
-let totalMinutes=0
 let workingDays=0
 
 for(let d=new Date(first);d<=last;d.setDate(d.getDate()+1)){
@@ -387,26 +331,24 @@ let day=d.getDay()
 
 let key=d.toISOString().split("T")[0]
 
-if(day!==0 && day!==6){
+if(day===0||day===6) continue
+
 workingDays++
+
+if(data[key] && data[key].attendance==="wfo"){
+wfo++
 }
 
-if(data[key]){
-totalMinutes+=data[key].tasks.reduce((a,b)=>a+b.minutes,0)
 }
 
+let pct=0
+
+if(workingDays>0){
+pct=((wfo*100)/workingDays).toFixed(2)
 }
 
-let expected=workingDays*420
-let diff=totalMinutes-expected
+let el=document.getElementById("attendancePercent")
 
-document.getElementById("totalLogged").innerText=
-"Logged: "+formatMinutes(totalMinutes)
-
-document.getElementById("expectedHours").innerText=
-"Expected: "+formatMinutes(expected)
-
-document.getElementById("hourDifference").innerText=
-"Difference: "+formatMinutes(diff)
+el.innerText=pct+"%"
 
 }

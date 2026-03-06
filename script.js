@@ -225,4 +225,108 @@ renderWeekends()
 
 Object.keys(data).forEach(date=>{
 
-let entry=data[date
+let entry=data[date]
+
+let color=""
+
+if(entry.attendance==="wfo") color="green"
+if(entry.attendance==="leave") color="red"
+if(entry.attendance==="holiday") color="grey"
+
+if(color){
+
+calendar.addEvent({
+start:date,
+display:"background",
+backgroundColor:color
+})
+
+}
+
+let minutes=entry.tasks.reduce((a,b)=>a+b.minutes,0)
+
+if(minutes>0){
+
+calendar.addEvent({
+title:formatMinutes(minutes),
+start:date
+})
+
+}
+
+})
+
+updateAttendance()
+
+}
+
+function updateAttendance(){
+
+let view=calendar.view
+let start=new Date(view.currentStart)
+let end=new Date(view.currentEnd)
+
+let wfo=0
+let wfh=0
+
+for(let d=new Date(start);d<end;d.setDate(d.getDate()+1)){
+
+let dateStr=d.toISOString().split("T")[0]
+
+if(!data[dateStr]) continue
+
+let att=data[dateStr].attendance
+
+if(att==="wfo") wfo++
+if(att==="wfh") wfh++
+
+}
+
+let percent=0
+
+if(wfo+wfh>0){
+percent=((wfo/(wfo+wfh))*100).toFixed(2)
+}
+
+let block=document.getElementById("attendancePercent")
+
+block.innerText=percent+"%"
+
+if(percent<60){
+block.style.color="red"
+}else{
+block.style.color="green"
+}
+
+}
+
+function exportExcel(){
+
+let rows=[]
+
+Object.keys(data).forEach(date=>{
+
+let entry=data[date]
+
+entry.tasks.forEach(t=>{
+
+rows.push({
+date:date,
+task:t.name,
+minutes:t.minutes,
+attendance:entry.attendance
+})
+
+})
+
+})
+
+let ws=XLSX.utils.json_to_sheet(rows)
+
+let wb=XLSX.utils.book_new()
+
+XLSX.utils.book_append_sheet(wb,ws,"WorkLog")
+
+XLSX.writeFile(wb,"work_log.xlsx")
+
+}

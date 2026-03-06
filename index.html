@@ -22,7 +22,7 @@
 
 <div>
 Work From Office % :
-<span id="attendancePercent" class="wfoIndicator">0%</span>
+<span id="attendancePercent" class="indicator">0%</span>
 </div>
 
 <button onclick="exportExcel()">Export Excel</button>
@@ -64,19 +64,9 @@ Work From Office % :
 
 <tfoot>
 <tr>
-
-<td>
-<input id="taskName" placeholder="Task name">
-</td>
-
-<td>
-<input id="taskTime" placeholder="3h 10m / 45m / 2h">
-</td>
-
-<td>
-<button onclick="addTask()">➕</button>
-</td>
-
+<td><input id="taskName"></td>
+<td><input id="taskTime" placeholder="3h 10m"></td>
+<td><button onclick="addTask()">➕</button></td>
 </tr>
 </tfoot>
 
@@ -84,9 +74,7 @@ Work From Office % :
 
 <hr>
 
-<div id="timeSummary">
-Logged: 0h 0m | Remaining: 7h 0m
-</div>
+<div id="timeSummary"></div>
 
 </div>
 

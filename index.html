@@ -8,8 +8,6 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
 <link rel="stylesheet" href="style.css">
 
 </head>
@@ -25,7 +23,13 @@ Work From Office % :
 <span id="attendancePercent" class="indicator">0%</span>
 </div>
 
-<button onclick="exportExcel()">Export Excel</button>
+</div>
+
+<div id="monthSummary">
+
+<span id="totalLogged">Logged: 0h</span>
+<span id="expectedHours">Expected: 0h</span>
+<span id="hourDifference">Difference: 0h</span>
 
 </div>
 
@@ -72,7 +76,6 @@ Click a date on the calendar to log work.
 </thead>
 
 <tbody id="taskList"></tbody>
-
 
 <tfoot>
 <tr>

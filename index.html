@@ -6,7 +6,6 @@
 <title>Work Tracker</title>
 
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
-
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -19,23 +18,33 @@
 
 <h2>Work Tracker</h2>
 
-<div id="stats">
-WFO %: <span id="attendancePercent">0</span>
+<div id="topBar">
+
+<div>
+WFO % : <span id="attendancePercent">0</span>
 </div>
 
 <button onclick="exportExcel()">Export Excel</button>
 
+</div>
+
+<div id="layout">
+
 <div id="calendar"></div>
 
-<div id="taskModal" class="modal">
+<div id="sidePanel">
 
-<h3 id="modalDate"></h3>
+<h3 id="panelDate">Select a day</h3>
 
-<select id="attendance">
+<label>Attendance</label>
+
+<select id="attendanceSelect">
+
 <option value="wfh">WFH</option>
 <option value="wfo">WFO</option>
 <option value="leave">Leave</option>
 <option value="holiday">Holiday</option>
+
 </select>
 
 <h4>Tasks</h4>
@@ -43,19 +52,27 @@ WFO %: <span id="attendancePercent">0</span>
 <div id="taskList"></div>
 
 <input id="taskName" placeholder="Task name">
-
 <input id="taskMinutes" placeholder="Minutes">
 
 <button onclick="addTask()">Add Task</button>
 
-<br><br>
+<hr>
 
-<button onclick="saveDay()">Save</button>
-<button onclick="closeModal()">Close</button>
+<div id="timeSummary">
+
+Logged: 0h  
+Remaining: 7h
+
+</div>
+
+<button onclick="saveDay()">Save Day</button>
+
+</div>
 
 </div>
 
 <script src="script.js"></script>
 
 </body>
+
 </html>

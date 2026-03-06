@@ -38,17 +38,9 @@ table-layout:fixed;
 
 }
 
-#taskTable td:nth-child(1){
-width:55%;
-}
-
-#taskTable td:nth-child(2){
-width:35%;
-}
-
-#taskTable td:nth-child(3){
-width:10%;
-}
+#taskTable td:nth-child(1){width:55%}
+#taskTable td:nth-child(2){width:35%}
+#taskTable td:nth-child(3){width:10%}
 
 input{
 
@@ -60,19 +52,36 @@ box-sizing:border-box;
 
 button{
 
-padding:6px 10px;
 cursor:pointer;
-
-}
-
-.weekend{
-
-background:#f1f1f1 !important;
 
 }
 
 .icon{
 
 cursor:pointer;
+
+}
+
+.weekend{
+
+background:#eee !important;
+
+}
+
+.panelPink{
+
+background:#ffe6ef;
+
+}
+
+.panelGreen{
+
+background:#e6ffe9;
+
+}
+
+.panelYellow{
+
+background:#fff7cc;
 
 }

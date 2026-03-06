@@ -1,6 +1,22 @@
 body{
-font-family:Arial;
-margin:40px;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+background:#f6f8fb;
+margin:0;
+padding:40px;
+color:#2c3e50;
+}
+
+#topBar{
+display:flex;
+justify-content:space-between;
+margin-bottom:20px;
+}
+
+.indicator{
+font-weight:600;
+padding:6px 10px;
+border-radius:6px;
+background:#ecf0f3;
 }
 
 #layout{
@@ -10,23 +26,58 @@ gap:30px;
 }
 
 #calendar{
-max-width:900px;
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 14px rgba(0,0,0,0.05);
 }
 
 #sidePanel{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 4px 14px rgba(0,0,0,0.05);
+}
+
+#noSelection{
+text-align:center;
+color:#7f8c8d;
+padding:40px;
+}
+
+select,input{
+padding:8px;
+border-radius:6px;
 border:1px solid #ddd;
-padding:20px;
-background:#fafafa;
+width:100%;
 }
 
 #taskTable{
 width:100%;
 border-collapse:collapse;
+margin-top:10px;
 }
 
 #taskTable th{
-border-bottom:1px solid #ccc;
+border-bottom:1px solid #eee;
 text-align:left;
+}
+
+#taskTable td{
+padding:6px 0;
+}
+
+button{
+background:#4f7cff;
+color:white;
+border:none;
+padding:8px 12px;
+border-radius:6px;
+cursor:pointer;
+}
+
+button:hover{
+background:#3e66d6;
 }
 
 .icon{
@@ -34,11 +85,14 @@ cursor:pointer;
 margin-left:6px;
 }
 
-.indicator{
-font-weight:bold;
-font-size:18px;
+#timeSummary{
+margin-top:10px;
+font-weight:600;
+background:#f3f6fb;
+padding:10px;
+border-radius:6px;
 }
 
 .weekend{
-background:#eeeeee !important;
+background:#f1f2f6 !important;
 }

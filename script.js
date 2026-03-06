@@ -30,21 +30,39 @@ function persist(){
 localStorage.setItem("worktracker",JSON.stringify(data))
 }
 
+function formatMinutes(m){
+
+let h=Math.floor(m/60)
+let min=m%60
+
+return h+"h "+min+"m"
+
+}
+
+function parseTime(t){
+
+t=t.toLowerCase()
+
+let h=(t.match(/(\d+)h/)||[])[1]||0
+let m=(t.match(/(\d+)m/)||[])[1]||0
+
+return (parseInt(h)*60)+parseInt(m)
+
+}
+
 function openPanel(){
 
 document.getElementById("panelDate").innerText=selectedDate
 
 if(!data[selectedDate]){
 
-let day=new Date(selectedDate).getDay()
+let d=new Date(selectedDate).getDay()
 
-let attendance="wfh"
+let att="wfh"
 
-if(day===0||day===6){
-attendance="holiday"
-}
+if(d===0||d===6) att="holiday"
 
-data[selectedDate]={attendance:attendance,tasks:[]}
+data[selectedDate]={attendance:att,tasks:[]}
 
 persist()
 
@@ -53,13 +71,12 @@ persist()
 document.getElementById("attendanceSelect").value=data[selectedDate].attendance
 
 renderTasks()
-updateTimeSummary()
+
+updateTime()
 
 }
 
 document.getElementById("attendanceSelect").addEventListener("change",function(){
-
-if(!selectedDate)return
 
 data[selectedDate].attendance=this.value
 
@@ -69,54 +86,21 @@ updateCalendar()
 
 })
 
-function parseTime(input){
-
-input=input.toLowerCase().trim()
-
-let hours=0
-let minutes=0
-
-let hMatch=input.match(/(\d+)\s*h/)
-let mMatch=input.match(/(\d+)\s*m/)
-
-if(hMatch) hours=parseInt(hMatch[1])
-if(mMatch) minutes=parseInt(mMatch[1])
-
-if(!hMatch && !mMatch){
-minutes=parseInt(input)
-}
-
-return (hours*60)+minutes
-
-}
-
-function formatMinutes(minutes){
-
-let h=Math.floor(minutes/60)
-let m=minutes%60
-
-return h+"h "+m+"m"
-
-}
-
 function addTask(){
 
 let name=document.getElementById("taskName").value
 let time=document.getElementById("taskTime").value
 
-if(!name||!time)return
+if(!name||!time) return
 
-let minutes=parseTime(time)
+let mins=parseTime(time)
 
-data[selectedDate].tasks.push({name:name,minutes:minutes})
-
-document.getElementById("taskName").value=""
-document.getElementById("taskTime").value=""
+data[selectedDate].tasks.push({name:name,minutes:mins})
 
 persist()
 
 renderTasks()
-updateTimeSummary()
+updateTime()
 updateCalendar()
 
 }
@@ -124,9 +108,10 @@ updateCalendar()
 function renderTasks(){
 
 let list=document.getElementById("taskList")
+
 list.innerHTML=""
 
-data[selectedDate].tasks.forEach((t,index)=>{
+data[selectedDate].tasks.forEach((t,i)=>{
 
 let row=document.createElement("tr")
 
@@ -134,8 +119,8 @@ row.innerHTML=`
 <td>${t.name}</td>
 <td>${formatMinutes(t.minutes)}</td>
 <td>
-<span class="iconBtn" onclick="editTask(${index})">✏️</span>
-<span class="iconBtn" onclick="deleteTask(${index})">🗑️</span>
+<span class="icon" onclick="editTask(${i})">✏️</span>
+<span class="icon" onclick="deleteTask(${i})">🗑️</span>
 </td>
 `
 
@@ -145,75 +130,46 @@ list.appendChild(row)
 
 }
 
-function deleteTask(index){
+function deleteTask(i){
 
-data[selectedDate].tasks.splice(index,1)
-
-persist()
-
-renderTasks()
-updateTimeSummary()
-updateCalendar()
-
-}
-
-function editTask(index){
-
-let task=data[selectedDate].tasks[index]
-
-let newName=prompt("Task name",task.name)
-let newTime=prompt("Time (example 2h 30m)",formatMinutes(task.minutes))
-
-if(!newName||!newTime)return
-
-task.name=newName
-task.minutes=parseTime(newTime)
+data[selectedDate].tasks.splice(i,1)
 
 persist()
 
 renderTasks()
-updateTimeSummary()
+updateTime()
 updateCalendar()
 
 }
 
-function updateTimeSummary(){
+function editTask(i){
 
-let tasks=data[selectedDate].tasks
+let task=data[selectedDate].tasks[i]
 
-let minutes=tasks.reduce((a,b)=>a+b.minutes,0)
+let name=prompt("Task",task.name)
+let time=prompt("Time",formatMinutes(task.minutes))
 
-let remaining=420-minutes
-if(remaining<0) remaining=0
+task.name=name
+task.minutes=parseTime(time)
+
+persist()
+
+renderTasks()
+updateTime()
+updateCalendar()
+
+}
+
+function updateTime(){
+
+let mins=data[selectedDate].tasks.reduce((a,b)=>a+b.minutes,0)
+
+let remain=420-mins
+
+if(remain<0) remain=0
 
 document.getElementById("timeSummary").innerText=
-"Logged: "+formatMinutes(minutes)+" | Remaining: "+formatMinutes(remaining)
-
-}
-
-function renderWeekends(){
-
-let view=calendar.view
-let start=new Date(view.currentStart)
-let end=new Date(view.currentEnd)
-
-for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-
-let day=d.getDay()
-
-if(day===0||day===6){
-
-let dateStr=d.toISOString().split("T")[0]
-
-calendar.addEvent({
-start:dateStr,
-display:"background",
-backgroundColor:"#e6e6e6"
-})
-
-}
-
-}
+"Logged: "+formatMinutes(mins)+" | Remaining: "+formatMinutes(remain)
 
 }
 
@@ -223,33 +179,33 @@ calendar.removeAllEvents()
 
 renderWeekends()
 
-Object.keys(data).forEach(date=>{
+Object.keys(data).forEach(d=>{
 
-let entry=data[date]
+let e=data[d]
 
 let color=""
 
-if(entry.attendance==="wfo") color="green"
-if(entry.attendance==="leave") color="red"
-if(entry.attendance==="holiday") color="grey"
+if(e.attendance==="wfo") color="green"
+if(e.attendance==="leave") color="red"
+if(e.attendance==="holiday") color="grey"
 
 if(color){
 
 calendar.addEvent({
-start:date,
+start:d,
 display:"background",
 backgroundColor:color
 })
 
 }
 
-let minutes=entry.tasks.reduce((a,b)=>a+b.minutes,0)
+let mins=e.tasks.reduce((a,b)=>a+b.minutes,0)
 
-if(minutes>0){
+if(mins>0){
 
 calendar.addEvent({
-title:formatMinutes(minutes),
-start:date
+title:formatMinutes(mins),
+start:d
 })
 
 }
@@ -260,9 +216,35 @@ updateAttendance()
 
 }
 
+function renderWeekends(){
+
+let view=calendar.view
+
+let start=new Date(view.currentStart)
+let end=new Date(view.currentEnd)
+
+for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+
+let day=d.getDay()
+
+if(day===0||day===6){
+
+calendar.addEvent({
+start:d.toISOString().split("T")[0],
+display:"background",
+backgroundColor:"#e6e6e6"
+})
+
+}
+
+}
+
+}
+
 function updateAttendance(){
 
 let view=calendar.view
+
 let start=new Date(view.currentStart)
 let end=new Date(view.currentEnd)
 
@@ -271,62 +253,26 @@ let wfh=0
 
 for(let d=new Date(start);d<end;d.setDate(d.getDate()+1)){
 
-let dateStr=d.toISOString().split("T")[0]
+let key=d.toISOString().split("T")[0]
 
-if(!data[dateStr]) continue
+if(!data[key]) continue
 
-let att=data[dateStr].attendance
-
-if(att==="wfo") wfo++
-if(att==="wfh") wfh++
+if(data[key].attendance==="wfo") wfo++
+if(data[key].attendance==="wfh") wfh++
 
 }
 
-let percent=0
+let pct=0
 
 if(wfo+wfh>0){
-percent=((wfo/(wfo+wfh))*100).toFixed(2)
+pct=((wfo/(wfo+wfh))*100).toFixed(2)
 }
 
-let block=document.getElementById("attendancePercent")
+let el=document.getElementById("attendancePercent")
 
-block.innerText=percent+"%"
+el.innerText=pct+"%"
 
-if(percent<60){
-block.style.color="red"
-}else{
-block.style.color="green"
-}
-
-}
-
-function exportExcel(){
-
-let rows=[]
-
-Object.keys(data).forEach(date=>{
-
-let entry=data[date]
-
-entry.tasks.forEach(t=>{
-
-rows.push({
-date:date,
-task:t.name,
-minutes:t.minutes,
-attendance:entry.attendance
-})
-
-})
-
-})
-
-let ws=XLSX.utils.json_to_sheet(rows)
-
-let wb=XLSX.utils.book_new()
-
-XLSX.utils.book_append_sheet(wb,ws,"WorkLog")
-
-XLSX.writeFile(wb,"work_log.xlsx")
+if(pct<60) el.style.color="red"
+else el.style.color="green"
 
 }

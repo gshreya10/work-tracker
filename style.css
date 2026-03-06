@@ -1,0 +1,25 @@
+body{
+font-family:Arial;
+margin:40px;
+}
+
+#calendar{
+max-width:900px;
+margin-top:20px;
+}
+
+.modal{
+
+display:none;
+position:fixed;
+top:20%;
+left:40%;
+background:white;
+border:1px solid #ccc;
+padding:20px;
+
+}
+
+.task{
+margin:5px 0;
+}

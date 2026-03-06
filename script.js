@@ -9,6 +9,7 @@ let selectedDate=null
 let data={}
 let fileSHA=null
 
+
 document.addEventListener("DOMContentLoaded",function(){
 
 const calendarEl=document.getElementById("calendar")
@@ -30,10 +31,7 @@ info.el.classList.add("weekend")
 
 dateClick:function(info){
 
-selectedDate = info.dateStr
-
-console.log("Selected:", selectedDate)
-
+selectedDate=info.dateStr
 openPanel()
 
 }
@@ -45,6 +43,8 @@ calendar.render()
 loadDatabase()
 
 })
+
+
 
 async function loadDatabase(){
 
@@ -60,6 +60,8 @@ data=JSON.parse(atob(file.content))
 updateCalendar()
 
 }
+
+
 
 async function saveDatabase(){
 
@@ -86,6 +88,8 @@ fileSHA=result.content.sha
 
 }
 
+
+
 function parseTime(input){
 
 input=input.toLowerCase().trim()
@@ -93,9 +97,11 @@ input=input.toLowerCase().trim()
 let h=(input.match(/(\d+)h/)||[])[1]||0
 let m=(input.match(/(\d+)m/)||[])[1]||0
 
-return parseInt(h)*60+parseInt(m)
+return parseInt(h)*60 + parseInt(m)
 
 }
+
+
 
 function formatMinutes(m){
 
@@ -106,37 +112,31 @@ return h+"h "+min+"m"
 
 }
 
+
+
 function openPanel(){
 
 if(!selectedDate) return
 
-document.getElementById("noSelection").style.display = "none"
-document.getElementById("dayDetails").style.display = "block"
+document.getElementById("noSelection").style.display="none"
+document.getElementById("dayDetails").style.display="block"
 
-document.getElementById("panelDate").innerText = selectedDate
+document.getElementById("panelDate").innerText=selectedDate
 
 if(!data[selectedDate]){
 
-let d = new Date(selectedDate).getDay()
+let d=new Date(selectedDate).getDay()
 
-let att = "wfh"
+let att="wfh"
 
-if(d === 0 || d === 6){
-att = "holiday"
+if(d===0||d===6){
+att="holiday"
 }
 
-data[selectedDate] = {
-attendance: att,
-tasks: []
+data[selectedDate]={
+attendance:att,
+tasks:[]
 }
-
-}
-
-document.getElementById("attendanceSelect").value =
-data[selectedDate].attendance
-
-renderTasks()
-updateTime()
 
 }
 
@@ -147,7 +147,11 @@ updateTime()
 
 }
 
+
+
 document.getElementById("attendanceSelect").addEventListener("change",function(){
+
+if(!selectedDate) return
 
 data[selectedDate].attendance=this.value
 
@@ -156,7 +160,11 @@ saveDatabase()
 
 })
 
+
+
 function addTask(){
+
+if(!selectedDate) return
 
 let name=document.getElementById("taskName").value.trim()
 let time=document.getElementById("taskTime").value.trim()
@@ -165,7 +173,10 @@ if(!name||!time) return
 
 let mins=parseTime(time)
 
-data[selectedDate].tasks.push({name:name,minutes:mins})
+data[selectedDate].tasks.push({
+name:name,
+minutes:mins
+})
 
 document.getElementById("taskName").value=""
 document.getElementById("taskTime").value=""
@@ -177,6 +188,8 @@ updateCalendar()
 saveDatabase()
 
 }
+
+
 
 function renderTasks(){
 
@@ -200,12 +213,16 @@ list.appendChild(row)
 
 }
 
+
+
 function updateTaskName(i,v){
 
 data[selectedDate].tasks[i].name=v
 saveDatabase()
 
 }
+
+
 
 function updateTaskTime(i,v){
 
@@ -217,6 +234,8 @@ updateCalendar()
 saveDatabase()
 
 }
+
+
 
 function deleteTask(i){
 
@@ -230,18 +249,22 @@ saveDatabase()
 
 }
 
+
+
 function updateTime(){
 
 let mins=data[selectedDate].tasks.reduce((a,b)=>a+b.minutes,0)
 
 let remain=420-mins
 
-if(remain<0)remain=0
+if(remain<0) remain=0
 
 document.getElementById("timeSummary").innerText=
 "Logged: "+formatMinutes(mins)+" | Remaining: "+formatMinutes(remain)
 
 }
+
+
 
 function updateCalendar(){
 
@@ -253,9 +276,9 @@ let e=data[d]
 
 let color=""
 
-if(e.attendance==="wfo")color="green"
-if(e.attendance==="leave")color="red"
-if(e.attendance==="holiday")color="grey"
+if(e.attendance==="wfo") color="green"
+if(e.attendance==="leave") color="red"
+if(e.attendance==="holiday") color="grey"
 
 if(color){
 
@@ -284,6 +307,8 @@ updateAttendance()
 
 }
 
+
+
 function updateAttendance(){
 
 let view=calendar.view
@@ -301,10 +326,10 @@ for(let d=new Date(first);d<=last;d.setDate(d.getDate()+1)){
 
 let key=d.toISOString().split("T")[0]
 
-if(!data[key])continue
+if(!data[key]) continue
 
-if(data[key].attendance==="wfo")wfo++
-if(data[key].attendance==="wfh")wfh++
+if(data[key].attendance==="wfo") wfo++
+if(data[key].attendance==="wfh") wfh++
 
 }
 
@@ -318,10 +343,12 @@ let el=document.getElementById("attendancePercent")
 
 el.innerText=pct+"%"
 
-if(pct<60)el.style.color="red"
+if(pct<60) el.style.color="red"
 else el.style.color="green"
 
 }
+
+
 
 function exportExcel(){
 

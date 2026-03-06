@@ -3,23 +3,43 @@ font-family:Arial;
 margin:40px;
 }
 
-#calendar{
-max-width:900px;
+#topBar{
+display:flex;
+justify-content:space-between;
+max-width:1200px;
+}
+
+#layout{
+display:grid;
+grid-template-columns: 2fr 1fr;
+gap:30px;
 margin-top:20px;
 }
 
-.modal{
-
-display:none;
-position:fixed;
-top:20%;
-left:40%;
-background:white;
-border:1px solid #ccc;
-padding:20px;
-
+#calendar{
+max-width:900px;
 }
 
-.task{
+#sidePanel{
+border:1px solid #ddd;
+padding:20px;
+background:#fafafa;
+}
+
+#taskList div{
+margin:4px 0;
+}
+
+input{
 margin:5px 0;
+width:100%;
+}
+
+button{
+margin-top:10px;
+}
+
+#timeSummary{
+margin-top:10px;
+font-weight:bold;
 }
